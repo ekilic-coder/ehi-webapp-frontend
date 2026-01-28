@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>EHI Heat Stress Zones - India Summer 2025</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         * {
@@ -246,8 +247,8 @@
         <div class="control-group">
             <label>Conditions</label>
             <div class="btn-group">
-                <button class="btn" data-sun="shade">Shade</button>
-                <button class="btn active" data-sun="sun">Sun</button>
+                <button class="btn" data-sun="shade"><i class="fas fa-cloud"></i> Shade</button>
+                <button class="btn active" data-sun="sun"><i class="fas fa-sun"></i> Sun</button>
             </div>
         </div>
     </div>
@@ -407,11 +408,17 @@
             for (let zone = 1; zone <= 6; zone++) {
                 const zonePoints = data.points.filter(p => p.zone === zone);
 
-                const hoverText = zonePoints.map(p =>
-                    p.district && p.state
-                        ? `<b>${cleanName(p.district)}</b>, ${cleanName(p.state)}<br>Zone ${zone}: ${zoneNames[zone]}`
-                        : `Zone ${zone}: ${zoneNames[zone]}`
-                );
+                const hoverText = zonePoints.map(p => {
+                    let locationText = '';
+                    if (p.district && p.state) {
+                        locationText = `<b>${cleanName(p.district)}</b>, ${cleanName(p.state)}`;
+                    } else if (p.state) {
+                        locationText = `<b>${cleanName(p.state)}</b>`;
+                    }
+                    return locationText
+                        ? `${locationText}<br>Zone ${zone}: ${zoneNames[zone]}`
+                        : `Zone ${zone}: ${zoneNames[zone]}`;
+                });
 
                 traces.push({
                     type: 'scattermapbox',
