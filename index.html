@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>EHI Heat Stress Zones - India Summer 2025</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0;
             padding: 0;
             background: #f5f5f5;
@@ -72,7 +73,7 @@
         }
         .time-controls {
             position: fixed;
-            bottom: 20px;
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
@@ -194,7 +195,7 @@
         }
         .legend-panel {
             position: fixed;
-            bottom: 100px;
+            bottom: 160px;
             left: 10px;
             background: white;
             padding: 12px;
@@ -254,29 +255,29 @@
     </div>
 
     <div class="legend-panel">
-        <div class="legend-title">EHI Zones</div>
+        <div class="legend-title">EHI-N* Zones</div>
         <div class="legend-item">
-            <div class="legend-color" style="background: #0066CC"></div>
+            <div class="legend-color" style="background: #2196f3"></div>
             <span>Zone 1: Cold Stress</span>
         </div>
         <div class="legend-item">
-            <div class="legend-color" style="background: #228B22"></div>
+            <div class="legend-color" style="background: #4caf50"></div>
             <span>Zone 2: Comfortable</span>
         </div>
         <div class="legend-item">
-            <div class="legend-color" style="background: #90EE90"></div>
-            <span>Zone 3: Comfortable</span>
+            <div class="legend-color" style="background: #ffeb3b"></div>
+            <span>Zone 3: Mild Heat Stress</span>
         </div>
         <div class="legend-item">
-            <div class="legend-color" style="background: #FFD700"></div>
-            <span>Zone 4: Caution</span>
+            <div class="legend-color" style="background: #ff9800"></div>
+            <span>Zone 4: Moderate Heat Stress</span>
         </div>
         <div class="legend-item">
-            <div class="legend-color" style="background: #FF4500"></div>
-            <span>Zone 5: High Risk</span>
+            <div class="legend-color" style="background: #f44336"></div>
+            <span>Zone 5: High Heat Stress</span>
         </div>
         <div class="legend-item">
-            <div class="legend-color" style="background: #800080"></div>
+            <div class="legend-color" style="background: #9c27b0"></div>
             <span>Zone 6: Hazardous</span>
         </div>
     </div>
@@ -309,19 +310,19 @@
 
         // Zone colors and names
         const zoneColors = {
-            1: '#0066CC',
-            2: '#228B22',
-            3: '#90EE90',
-            4: '#FFD700',
-            5: '#FF4500',
-            6: '#800080'
+            1: '#2196f3',
+            2: '#4caf50',
+            3: '#ffeb3b',
+            4: '#ff9800',
+            5: '#f44336',
+            6: '#9c27b0'
         };
         const zoneNames = {
             1: 'Cold Stress',
             2: 'Comfortable',
-            3: 'Comfortable',
-            4: 'Caution',
-            5: 'High Risk',
+            3: 'Mild Heat Stress',
+            4: 'Moderate Heat Stress',
+            5: 'High Heat Stress',
             6: 'Hazardous'
         };
 
@@ -454,11 +455,33 @@
                     center: { lat: 22, lon: 82 },
                     zoom: 3.2
                 },
-                margin: { l: 0, r: 0, t: 0, b: 0 },
-                showlegend: false
+                margin: { l: 0, r: 0, t: 0, b: 60 },
+                showlegend: false,
+                annotations: [{
+                    text: 'Animated EHI-N* Zone Map for India, May–June 2025. Hourly heat stress zones computed using ERA5 reanalysis (0.25° resolution) for the Indian reference population (65 kg, 1.65 m).',
+                    showarrow: false,
+                    xref: 'paper',
+                    yref: 'paper',
+                    x: 0.5,
+                    y: -0.01,
+                    xanchor: 'center',
+                    yanchor: 'top',
+                    font: {
+                        family: 'Montserrat',
+                        size: 14,
+                        color: '#000000'
+                    }
+                }]
             };
 
-            await Plotly.newPlot('chart', traces, layout, { responsive: true });
+            const config = {
+                responsive: true,
+                scrollZoom: false,
+                doubleClick: false,
+                displayModeBar: false
+            };
+
+            await Plotly.newPlot('chart', traces, layout, config);
             chartInitialized = true;
 
             // Update time display
