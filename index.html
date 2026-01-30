@@ -298,6 +298,7 @@
                 <option value="1000" selected>1x</option>
                 <option value="500">2x</option>
                 <option value="250">4x</option>
+                <option value="200">5x</option>
             </select>
         </div>
     </div>
@@ -411,7 +412,13 @@
 
                 const hoverText = zonePoints.map(p => {
                     let locationText = '';
-                    if (p.district && p.state) {
+                    // Check if district exists and is not "data not available" or similar
+                    const hasValidDistrict = p.district &&
+                        !p.district.toLowerCase().includes('not available') &&
+                        !p.district.toLowerCase().includes('unknown') &&
+                        p.district.trim() !== '';
+
+                    if (hasValidDistrict && p.state) {
                         locationText = `<b>${cleanName(p.district)}</b>, ${cleanName(p.state)}`;
                     } else if (p.state) {
                         locationText = `<b>${cleanName(p.state)}</b>`;
@@ -458,7 +465,7 @@
                 margin: { l: 0, r: 0, t: 0, b: 60 },
                 showlegend: false,
                 annotations: [{
-                    text: 'Animated EHI-N* Zone Map for India, May–June 2025. Hourly heat stress zones computed using ERA5 reanalysis (0.25° resolution) for the Indian reference population (65 kg, 1.65 m).',
+                    text: '<b>Animated EHI-N* Zone Map for India, May–June 2025.</b><br>Hourly heat stress zones computed using ERA5 reanalysis (0.25° resolution)<br>for the Indian reference population (65 kg, 1.65 m).',
                     showarrow: false,
                     xref: 'paper',
                     yref: 'paper',
@@ -468,7 +475,7 @@
                     yanchor: 'top',
                     font: {
                         family: 'Montserrat',
-                        size: 14,
+                        size: 13,
                         color: '#000000'
                     }
                 }]
