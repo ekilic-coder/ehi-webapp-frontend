@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>EHI Heat Stress Zones - India Summer 2025</title>
+    <title>EHI Heat Stress Zones - India Summer 2020-2025</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
@@ -252,6 +252,17 @@
 
     <div class="controls">
         <div class="control-group">
+            <label>Year</label>
+            <div class="btn-group">
+                <button class="btn" data-year="2020">2020</button>
+                <button class="btn" data-year="2021">2021</button>
+                <button class="btn" data-year="2022">2022</button>
+                <button class="btn" data-year="2023">2023</button>
+                <button class="btn" data-year="2024">2024</button>
+                <button class="btn active" data-year="2025">2025</button>
+            </div>
+        </div>
+        <div class="control-group">
             <label>MET Level</label>
             <div class="btn-group">
                 <button class="btn" data-met="3">3</button>
@@ -345,11 +356,13 @@
         let manifest = null;
         let currentMet = 6;
         let currentSun = 'sun';
+        let currentYear = 2025;
         let currentFrameIndex = 0;
         let isPlaying = false;
         let playInterval = null;
         let frameCache = {};  // Cache: {met_sun_timeKey: data}
         let chartInitialized = false;
+        let filteredTimes = [];  // Timestamps filtered by current year
 
         // Helper to clean district/state names
         function cleanName(name) {
@@ -362,11 +375,41 @@
             return `met${met}_${sun}_${timeKey}`;
         }
 
+        // Filter times by year
+        function filterTimesByYear(year) {
+            if (!manifest) return [];
+            return manifest.times.filter(t => t.startsWith(year.toString()));
+        }
+
+        // Get display text for a time key
+        function getTimeDisplay(timeKey) {
+            if (!manifest || !timeKey) return 'Loading...';
+            const idx = manifest.times.indexOf(timeKey);
+            if (idx >= 0 && manifest.times_display && manifest.times_display[idx]) {
+                return manifest.times_display[idx];
+            }
+            // Fallback: parse the timeKey directly (format: YYYY-MM-DDTHH)
+            try {
+                const d = new Date(timeKey.replace('T', ' ') + ':00');
+                return d.toLocaleString('en-US', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true, year: 'numeric' });
+            } catch {
+                return timeKey;
+            }
+        }
+
+        // Update filtered times for current year
+        function updateFilteredTimes() {
+            filteredTimes = filterTimesByYear(currentYear);
+            document.getElementById('time-slider').max = Math.max(0, filteredTimes.length - 1);
+            currentFrameIndex = 0;
+            document.getElementById('time-slider').value = 0;
+        }
+
         // Fetch manifest
         async function loadManifest() {
             const response = await fetch(`${DATA_BASE_URL}/manifest.json`);
             manifest = await response.json();
-            document.getElementById('time-slider').max = manifest.total_frames - 1;
+            updateFilteredTimes();
             return manifest;
         }
 
@@ -406,8 +449,8 @@
         async function preloadFrames(startIndex, count = 10) {
             const promises = [];
             for (let i = 0; i < count; i++) {
-                const idx = (startIndex + i) % manifest.times.length;
-                const timeKey = manifest.times[idx];
+                const idx = (startIndex + i) % filteredTimes.length;
+                const timeKey = filteredTimes[idx];
                 const cacheKey = getCacheKey(currentMet, currentSun, timeKey);
 
                 if (!frameCache[cacheKey]) {
@@ -466,7 +509,7 @@
         async function initChart() {
             showLoading('Initializing map...');
 
-            const timeKey = manifest.times[0];
+            const timeKey = filteredTimes[0];
             const data = await fetchFrameData(currentMet, currentSun, timeKey);
             const traces = createTraces(data);
 
@@ -479,7 +522,7 @@
                 margin: { l: 0, r: 0, t: 0, b: 60 },
                 showlegend: false,
                 annotations: [{
-                    text: '<b>Animated EHI-N* Zone Map for India, April–June 2025.</b><br>Hourly heat stress zones computed using ERA5 reanalysis (0.25° resolution)<br>for the Indian reference population (65 kg, 1.65 m). Nighttime hours (6 PM – 6 AM IST) are calculated as shade regardless of sun/shade selection. White grid points indicate missing data.
+                    text: '<b>Animated EHI-N* Zone Map for India, April–June 2020-2025.</b><br>Hourly heat stress zones computed using ERA5 reanalysis (0.25° resolution)<br>for the Indian reference population (65 kg, 1.65 m). Nighttime hours (6 PM – 6 AM IST) are calculated as shade regardless of sun/shade selection. White grid points indicate missing data.
                     showarrow: false,
                     xref: 'paper',
                     yref: 'paper',
@@ -506,7 +549,7 @@
             chartInitialized = true;
 
             // Update time display
-            document.getElementById('time-display').textContent = manifest.times_display[0];
+            document.getElementById('time-display').textContent = getTimeDisplay(filteredTimes[0]);
 
             hideLoading();
 
@@ -518,7 +561,7 @@
         async function updateFrame(frameIndex) {
             if (!chartInitialized || !manifest) return;
 
-            const timeKey = manifest.times[frameIndex];
+            const timeKey = filteredTimes[frameIndex];
             const data = await fetchFrameData(currentMet, currentSun, timeKey);
             const traces = createTraces(data);
 
@@ -532,7 +575,7 @@
             await Plotly.restyle('chart', update);
 
             // Update time display
-            document.getElementById('time-display').textContent = manifest.times_display[frameIndex];
+            document.getElementById('time-display').textContent = getTimeDisplay(filteredTimes[frameIndex]);
             document.getElementById('time-slider').value = frameIndex;
 
             // Preload upcoming frames while playing
@@ -559,7 +602,7 @@
             const speed = parseInt(document.getElementById('speed-select').value);
 
             playInterval = setInterval(async () => {
-                currentFrameIndex = (currentFrameIndex + 1) % manifest.times.length;
+                currentFrameIndex = (currentFrameIndex + 1) % filteredTimes.length;
                 await updateFrame(currentFrameIndex);
             }, speed);
         }
@@ -605,6 +648,19 @@
             }
         });
 
+        document.querySelectorAll('[data-year]').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                if (this.classList.contains('disabled')) return;
+
+                document.querySelectorAll('[data-year]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentYear = parseInt(this.dataset.year);
+                pauseAnimation();
+                updateFilteredTimes();
+                await updateFrame(0);
+            });
+        });
+
         document.querySelectorAll('[data-met]').forEach(btn => {
             btn.addEventListener('click', async function() {
                 if (this.classList.contains('disabled')) return;
@@ -634,7 +690,7 @@
                 togglePlay();
             } else if (e.code === 'ArrowRight') {
                 pauseAnimation();
-                currentFrameIndex = Math.min(currentFrameIndex + 1, manifest.times.length - 1);
+                currentFrameIndex = Math.min(currentFrameIndex + 1, filteredTimes.length - 1);
                 updateFrame(currentFrameIndex);
             } else if (e.code === 'ArrowLeft') {
                 pauseAnimation();
