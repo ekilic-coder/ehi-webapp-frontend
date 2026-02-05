@@ -136,6 +136,21 @@
             border-radius: 4px;
             font-size: 12px;
         }
+        .animation-caption {
+            position: fixed;
+            bottom: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #555;
+            z-index: 1000;
+            text-align: center;
+            max-width: 90vw;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
         #chart {
             width: 100vw;
             height: 100vh;
@@ -282,6 +297,9 @@
         </div>
     </div>
 
+    <div class="animation-caption">
+        April–June 2025. Nighttime hours (6 PM – 6 AM IST) are calculated as shade regardless of sun/shade selection. White grid points indicate missing data.
+    </div>
 
     <div class="time-controls">
         <button class="play-btn" id="play-btn" title="Play/Pause">
@@ -294,11 +312,9 @@
         <div class="speed-control">
             <label>Speed:</label>
             <select id="speed-select">
-                <option value="2000">0.5x</option>
                 <option value="1000" selected>1x</option>
-                <option value="500">2x</option>
-                <option value="250">4x</option>
                 <option value="200">5x</option>
+                <option value="100">10x</option>
             </select>
         </div>
     </div>
