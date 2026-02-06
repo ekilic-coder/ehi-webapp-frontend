@@ -385,21 +385,33 @@
         function getTimeDisplay(timeKey) {
             if (!manifest || !timeKey) return 'Loading...';
             // Parse UTC time and convert to IST (UTC + 5:30)
+            // timeKey format: "2025-04-01T01" (YYYY-MM-DDTHH)
             try {
-                const d = new Date(timeKey.replace('T', ' ') + ':00 UTC');
+                const parts = timeKey.split('T');
+                const dateParts = parts[0].split('-');
+                const hour = parseInt(parts[1]);
+
+                // Create UTC date
+                const d = new Date(Date.UTC(
+                    parseInt(dateParts[0]),  // year
+                    parseInt(dateParts[1]) - 1,  // month (0-indexed)
+                    parseInt(dateParts[2]),  // day
+                    hour, 0, 0  // hour, min, sec
+                ));
+
                 // Add 5 hours 30 minutes for IST
                 const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
-                const formatted = istDate.toLocaleString('en-US', {
-                    day: 'numeric',
-                    month: 'short',
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true,
-                    year: 'numeric',
-                    timeZone: 'UTC'  // Display the IST-adjusted time as-is
-                });
-                return formatted + ' IST';
-            } catch {
+
+                const day = istDate.getUTCDate();
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const month = months[istDate.getUTCMonth()];
+                const year = istDate.getUTCFullYear();
+                let displayHour = istDate.getUTCHours();
+                const ampm = displayHour >= 12 ? 'PM' : 'AM';
+                displayHour = displayHour % 12 || 12;
+
+                return `${day} ${month} ${displayHour}:30 ${ampm} ${year} IST`;
+            } catch (e) {
                 return timeKey;
             }
         }
