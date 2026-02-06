@@ -381,17 +381,24 @@
             return manifest.times.filter(t => t.startsWith(year.toString()));
         }
 
-        // Get display text for a time key
+        // Get display text for a time key (converts UTC to IST)
         function getTimeDisplay(timeKey) {
             if (!manifest || !timeKey) return 'Loading...';
-            const idx = manifest.times.indexOf(timeKey);
-            if (idx >= 0 && manifest.times_display && manifest.times_display[idx]) {
-                return manifest.times_display[idx];
-            }
-            // Fallback: parse the timeKey directly (format: YYYY-MM-DDTHH)
+            // Parse UTC time and convert to IST (UTC + 5:30)
             try {
-                const d = new Date(timeKey.replace('T', ' ') + ':00');
-                return d.toLocaleString('en-US', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true, year: 'numeric' });
+                const d = new Date(timeKey.replace('T', ' ') + ':00 UTC');
+                // Add 5 hours 30 minutes for IST
+                const istDate = new Date(d.getTime() + (5.5 * 60 * 60 * 1000));
+                const formatted = istDate.toLocaleString('en-US', {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true,
+                    year: 'numeric',
+                    timeZone: 'UTC'  // Display the IST-adjusted time as-is
+                });
+                return formatted + ' IST';
             } catch {
                 return timeKey;
             }
